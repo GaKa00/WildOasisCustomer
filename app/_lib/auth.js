@@ -1,4 +1,4 @@
-import NextAuth from "next-auth/next";
+import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { createGuest, getGuest } from "./data-service";
 
@@ -9,38 +9,36 @@ const authConfig = {
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
     }),
   ],
-
   callbacks: {
-    authorized({auth, request}) {
-      return !!auth?.user
-      //  above is trick to turn things into bools
-
+    authorized({ auth, request }) {
+      return !!auth?.user;
     },
-    async  signIn(user, account, profile){
-try {
-   const existingGuest  = await getGuest(user.email);
+    async signIn({ user, account, profile }) {
+      try {
+        const existingGuest = await getGuest(user.email);
 
-   if(!existingGuest)  await createGuest({email: user.email, fullName: user.name});
+        if (!existingGuest)
+          await createGuest({ email: user.email, fullName: user.name });
 
-
-
-   return true;
-  
-} catch  {
-  return false;
-  
-}
-
+        return true;
+      } catch {
+        return false;
+      }
     },
-    async session({session, user}) {
-      const guest = getGuest(session.user.email)
-      session.user.guestId = guest.id
+    async session({ session, user }) {
+      const guest = await getGuest(session.user.email);
+      session.user.guestId = guest.id;
       return session;
-    }
+    },
   },
   pages: {
-    signIn: '/login',
-  }
+    signIn: "/login",
+  },
 };
 
-export const {auth, signIn, signOut, handlers: {GET, POST}, } = NextAuth(authConfig);
+export const {
+  auth,
+  signIn,
+  signOut,
+  handlers: { GET, POST },
+} = NextAuth(authConfig);

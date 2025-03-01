@@ -1,6 +1,6 @@
 
 "use client";
-const { createContext, useState } = require("react");
+const { createContext, useState, useContext } = require("react");
 
 const ReservationContext = createContext();
 const initialState = { from: undefined, to: undefined};

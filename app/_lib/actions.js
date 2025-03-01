@@ -2,12 +2,14 @@
 
 
 import { revalidatePath } from "next/cache";
-import { signIn, signOut } from "./auth";
+import { auth, signIn, signOut } from "./auth";
 import { supabase } from "./supabase";
 import { redirect } from "next/navigation";
+// import { getSession, signIn, signOut } from "next-auth/react";
 
 export async function updateProfile(formData) {
     const session = auth()
+    // const session = getSession();
     if(!session) throw new Error("You must be logged in");
 
     const nationalID = formData.get('nationalID');
@@ -33,9 +35,40 @@ export async function updateProfile(formData) {
     revalidatePath("/account/profile");
 }
 
+export async function createBooking( bookingData, formData) {
+
+   const session = auth();
+   if (!session) throw new Error("You must be logged in");
+
+
+   const newBooking = {
+     ...bookingData,
+     guestId: session.user.guestId,
+     numGuests: Number(formData.get("numGuests")),
+     observations: formData.get("obervations").slice(0, 1000),
+     extrasPrice: 0,
+     totalPrice: bookingData.cabinPrice,
+     isPaid: false,
+     hasBreakfast: false,
+     status : 'unconfirmed',
+   
+   };
+
+   const { error } = await supabase
+     .from("bookings")
+     .insert([newBooking])
+    
+
+   if (error)  throw new Error("Booking could not be created");
+revalidatePath(`/cabins${bookingData.cabinId}`)
+redirect('/thankyou')
+   
+}
+
 export async function deleteReservation(bookingId) {
 
-  await new Promise((res) => setTimeout(res, 2000));
+  
+  
    const session = auth();
    if (!session) throw new Error("You must be logged in");
 
@@ -61,7 +94,7 @@ export async function updateBooking(formData){
   console.log(formData);
   const bookingId = Number(formData.get("bookingId"));
 // 1. authenticate
-const session = auth();
+const session = auth()
 if (!session) throw new Error("You must be logged in");
 
 //2. authorization

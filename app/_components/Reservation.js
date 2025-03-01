@@ -1,4 +1,5 @@
 import { auth } from "../_lib/auth";
+// import { getSession } from "next-auth/react";
 import { getBookedDatesByCabinId, getSettings } from "../_lib/data-service";
 import DateSelector from "./DateSelector";
 import LoginMessage from "./LoginMessage";
@@ -7,6 +8,7 @@ import ReservationForm from "./ReservationForm";
 
 export default  async function Reservation({cabin}) {
   const session = await auth()
+  // const session = getSession()
    const [ settings , bookedDates] = await
    Promise.all([
     getSettings(), getBookedDatesByCabinId(cabin.id)])
